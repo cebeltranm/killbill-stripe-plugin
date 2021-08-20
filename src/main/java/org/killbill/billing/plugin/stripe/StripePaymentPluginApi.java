@@ -72,6 +72,7 @@ import com.google.common.collect.ImmutableMap;
 import com.stripe.exception.CardException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
+import com.stripe.model.ChargeCollection;
 import com.stripe.model.Customer;
 import com.stripe.model.HasId;
 import com.stripe.model.PaymentIntent;
@@ -629,9 +630,37 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                                                   params.put("charge", lastChargeId);
                                                   params.put("amount", KillBillMoney.toMinorUnits(currency.toString(), amount));
 
-                                                  Refund.create(params, requestOptions);
+                                                  Refund refund = Refund.create(params, requestOptions);
 
-                                                  return PaymentIntent.retrieve(paymentIntent, requestOptions);
+                                                  if (paymentIntent != null && paymentIntent.trim().length() > 0) {
+                                                      return PaymentIntent.retrieve(paymentIntent, requestOptions);
+                                                  }
+                                                  PaymentIntent intent = new PaymentIntent();
+                                                  
+                                                  intent.setId(refund.getId());
+                                                  intent.setAmount(refund.getAmount());
+                                                  intent.setCreated(refund.getCreated());
+                                                  intent.setCurrency(refund.getCurrency());
+                                                  intent.setDescription(refund.getDescription());
+                                                  intent.setMetadata(refund.getMetadata());
+                                                  intent.setObject(refund.getObject());
+                                                  intent.setStatus(refund.getStatus());
+                                                  
+                                                  Charge charge = new Charge();
+                                                  charge.setId((String)additionalData.get("last_charge_id") );
+                                                  charge.setStatus((String)additionalData.get("last_charge_status") );
+                                                  if (additionalData.get("last_charge_created")!=null && additionalData.get("last_charge_created") instanceof Long) {
+                                                      charge.setCreated((Long)additionalData.get("last_charge_created"));
+                                                  }
+                                                  
+                                                  ChargeCollection col = new ChargeCollection();
+                                                  ArrayList<Charge> list = new ArrayList<Charge>();
+                                                  list.add(charge);
+                                                  col.setData(list);
+                                                  col.setHasMore(false);
+                                                  col.setUrl("");
+                                                  intent.setCharges(col);
+                                                  return intent;
                                               }
                                           },
                                           kbAccountId,
@@ -895,7 +924,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
             try {
                 response = transactionExecutor.execute(account, nonNullPaymentMethodsRecord, previousResponse);
             } catch (final StripeException e) {
-                throw new PaymentPluginApiException("Error connecting to Stripe", e);
+                throw new PaymentPluginApiException(e.getMessage(), e);
             }
         }
 
