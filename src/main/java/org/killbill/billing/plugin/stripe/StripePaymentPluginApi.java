@@ -288,7 +288,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
             } catch (final CustomFieldApiException e) {
                 throw new PaymentPluginApiException("Unable to add custom field", e);
             } catch (final StripeException e) {
-                throw new PaymentPluginApiException("Error calling Stripe while adding payment method", e);
+                throw new PaymentPluginApiException(e.getMessage(), e);
             }
         }
 
@@ -301,7 +301,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                     additionalDataMap = StripePluginProperties.toAdditionalDataMap(stripePaymentMethod);
                     stripeId = stripePaymentMethod.getId();
                 } catch (final StripeException e) {
-                    throw new PaymentPluginApiException("Error calling Stripe while adding payment method", e);
+                    throw new PaymentPluginApiException(e.getMessage(), e);
                 }
             } else if ("token".equals(objectType)) {
                 try {
@@ -334,7 +334,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                         stripeId = stripeToken.getId();
                     }
                 } catch (final StripeException e) {
-                    throw new PaymentPluginApiException("Error calling Stripe while adding payment method", e);
+                    throw new PaymentPluginApiException(e.getMessage(), e);
                 }
             } else if ("source".equals(objectType)) {
                 try {
@@ -343,7 +343,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                     additionalDataMap = StripePluginProperties.toAdditionalDataMap(stripeSource);
                     stripeId = stripeSource.getId();
                 } catch (final StripeException e) {
-                    throw new PaymentPluginApiException("Error calling Stripe while adding payment method", e);
+                    throw new PaymentPluginApiException(e.getMessage(), e);
                 }
             } else if ("bank_account".equals(objectType)) {
                 try {
@@ -355,7 +355,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                     additionalDataMap = StripePluginProperties.toAdditionalDataMap(paymentSource);
                     stripeId = paymentSource.getId();
                 } catch (final StripeException e) {
-                    throw new PaymentPluginApiException("Error calling Stripe while adding payment method", e);
+                    throw new PaymentPluginApiException(e.getMessage(), e);
                 }
             } else {
                 throw new UnsupportedOperationException("Payment Method type not yet supported: " + objectType);
@@ -393,7 +393,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
         try {
             PaymentMethod.retrieve(stripePaymentMethodsRecord.getStripeId(), requestOptions).detach(requestOptions);
         } catch (final StripeException e) {
-            throw new PaymentPluginApiException("Unable to delete Stripe payment method", e);
+            throw new PaymentPluginApiException(e.getMessage(), e);
         }
 
         super.deletePaymentMethod(kbAccountId, kbPaymentMethodId, properties, context);
@@ -445,7 +445,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                 syncPaymentMethods(kbAccountId, stripeSources, existingPaymentMethodByStripeId, stripeObjectsTreated, context);
             }
         } catch (final StripeException e) {
-            throw new PaymentPluginApiException("Error connecting to Stripe", e);
+            throw new PaymentPluginApiException(e.getMessage(), e);
         } catch (final PaymentApiException e) {
             throw new PaymentPluginApiException("Error creating payment method", e);
         } catch (final SQLException e) {
@@ -744,7 +744,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                               context.getTenantId());
             return new PluginHostedPaymentPageFormDescriptor(kbAccountId, null, PluginProperties.buildPluginProperties(StripePluginProperties.toAdditionalDataMap(session, stripeConfigProperties.getPublicKey())));
         } catch (final StripeException e) {
-            throw new PaymentPluginApiException("Unable to create Stripe session", e);
+            throw new PaymentPluginApiException(e.getMessage(), e);
         } catch (final SQLException e) {
             throw new PaymentPluginApiException("Unable to save Stripe session", e);
         }
@@ -880,7 +880,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                     throw new PaymentPluginApiException("Error getting card error details from Stripe", e2);
                 }
             } catch (final StripeException e) {
-                throw new PaymentPluginApiException("Error connecting to Stripe", e);
+                throw new PaymentPluginApiException(e.getMessage(), e);
             }
         }
 
