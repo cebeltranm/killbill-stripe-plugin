@@ -636,7 +636,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                                                       return PaymentIntent.retrieve(paymentIntent, requestOptions);
                                                   }
                                                   PaymentIntent intent = new PaymentIntent();
-                                                  
+
                                                   intent.setId(refund.getId());
                                                   intent.setAmount(refund.getAmount());
                                                   intent.setCreated(refund.getCreated());
@@ -645,14 +645,14 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                                                   intent.setMetadata(refund.getMetadata());
                                                   intent.setObject(refund.getObject());
                                                   intent.setStatus(refund.getStatus());
-                                                  
+
                                                   Charge charge = new Charge();
                                                   charge.setId((String)additionalData.get("last_charge_id") );
                                                   charge.setStatus((String)additionalData.get("last_charge_status") );
                                                   if (additionalData.get("last_charge_created")!=null && additionalData.get("last_charge_created") instanceof Long) {
                                                       charge.setCreated((Long)additionalData.get("last_charge_created"));
                                                   }
-                                                  
+
                                                   ChargeCollection col = new ChargeCollection();
                                                   ArrayList<Charge> list = new ArrayList<Charge>();
                                                   list.add(charge);
@@ -832,8 +832,12 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                                                  paymentIntentParams.put("payment_method_types", paymentMethodTypesBuilder.build());
 
                                                  final StripeConfigProperties stripeConfigProperties = stripeConfigPropertiesConfigurationHandler.getConfigurable(context.getTenantId());
-                                                 paymentIntentParams.put("description", stripeConfigProperties.getChargeDescription());
-                                                 paymentIntentParams.put("statement_descriptor", stripeConfigProperties.getChargeStatementDescriptor());
+                                                 String description = PluginProperties.findPluginPropertyValue("description", properties) != null
+                                                         ? PluginProperties.findPluginPropertyValue("description", properties)
+                                                                 : stripeConfigProperties.getChargeDescription();
+                                                 
+                                                 paymentIntentParams.put("description", description);
+                                                 paymentIntentParams.put("statement_descriptor", stripeConfigProperties.getChargeDescription());
 
                                                  logger.info("Creating Stripe PaymentIntent");
                                                  return PaymentIntent.create(paymentIntentParams, requestOptions);
