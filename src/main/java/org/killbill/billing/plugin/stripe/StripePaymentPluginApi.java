@@ -71,6 +71,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.stripe.exception.CardException;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Card;
 import com.stripe.model.Charge;
 import com.stripe.model.ChargeCollection;
 import com.stripe.model.Customer;
@@ -329,6 +330,17 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                         } catch (final CustomFieldApiException e) {
                             throw new PaymentPluginApiException("Unable to add custom field", e);
                         }
+                    } else if (existingCustomerId != null) {
+                    	// attach the source to the current customer
+                    	final Map<String, Object> retrieveParams = new HashMap<>();
+                    	final List<String> expandList = new ArrayList<>();
+                    	expandList.add("sources");
+                    	retrieveParams.put("expand", expandList);
+                    	final Customer customer = Customer.retrieve(existingCustomerId, retrieveParams, requestOptions);
+                    	final Map<String, Object> sourceParams = new HashMap<>();
+                    	sourceParams.put("source", paymentMethodIdInStripe);
+                    	Card card = (Card) customer.getSources().create(sourceParams, requestOptions);
+                    	stripeId = card.getId();
                     } else {
                         // The id to charge is the one-time token
                         stripeId = stripeToken.getId();
