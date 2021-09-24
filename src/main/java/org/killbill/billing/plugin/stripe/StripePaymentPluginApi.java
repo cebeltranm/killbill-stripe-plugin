@@ -405,7 +405,11 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
         try {
             PaymentMethod.retrieve(stripePaymentMethodsRecord.getStripeId(), requestOptions).detach(requestOptions);
         } catch (final StripeException e) {
-            throw new PaymentPluginApiException(e.getMessage(), e);
+        	// if the payment method was already deleted in stripe or it is the one-time token 
+        	// allow delete it in killbill 
+        	if (!"resource_missing".equals(e.getCode())) {
+                throw new PaymentPluginApiException(e.getMessage(), e);
+        	}
         }
 
         super.deletePaymentMethod(kbAccountId, kbPaymentMethodId, properties, context);
