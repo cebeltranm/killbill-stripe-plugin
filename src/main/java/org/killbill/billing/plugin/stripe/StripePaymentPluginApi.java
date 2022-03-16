@@ -405,8 +405,8 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
         try {
             PaymentMethod.retrieve(stripePaymentMethodsRecord.getStripeId(), requestOptions).detach(requestOptions);
         } catch (final StripeException e) {
-        	// if the payment method was already deleted in stripe or it is the one-time token 
-        	// allow delete it in killbill 
+        	// if the payment method was already deleted in stripe or it is the one-time token
+        	// allow delete it in killbill
         	if (!"resource_missing".equals(e.getCode())) {
                 throw new PaymentPluginApiException(e.getMessage(), e);
         	}
@@ -807,6 +807,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                                                  paymentIntentParams.put("capture_method", captureMethod.value);
                                                  // TODO Do we need to switch to manual confirmation to be able to set off_session=recurring?
                                                  paymentIntentParams.put("confirm", true);
+                                                 paymentIntentParams.put("off_session", true);
                                                  // See https://stripe.com/docs/api/payment_intents/create#create_payment_intent-return_url
                                                  final String returnUrl = PluginProperties.findPluginPropertyValue("return_url", properties);
                                                  if (returnUrl != null) {
@@ -851,7 +852,7 @@ public class StripePaymentPluginApi extends PluginPaymentPluginApi<StripeRespons
                                                  String description = PluginProperties.findPluginPropertyValue("description", properties) != null
                                                          ? PluginProperties.findPluginPropertyValue("description", properties)
                                                                  : stripeConfigProperties.getChargeDescription();
-                                                 
+
                                                  paymentIntentParams.put("description", description);
                                                  paymentIntentParams.put("statement_descriptor", stripeConfigProperties.getChargeDescription());
 
